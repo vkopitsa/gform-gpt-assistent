@@ -1,21 +1,33 @@
-export class Assistent {
-    apiKey: string
+import { models } from "configs";
 
-    constructor(apiKey: string) {
-        this.apiKey = apiKey
+
+export class OpenAI {
+    apiKey: string;
+    model: string;
+    cache: Map<string, any> = new Map<string, any>();
+
+    constructor(apiKey: string, model: string) {
+        this.apiKey = apiKey;
+        this.model = model;
     }
 
     setApiKey(apiKey: string) {
-        this.apiKey = apiKey
+        this.apiKey = apiKey;
     }
 
-    async getAnswer(msg: string, callback): Promise<boolean> {
-        const question = JSON.parse(msg);
+    setModel(model: string) {
+        this.model = model;
+    }
+
+    async getAnswer(question: Object): Promise<Object|null> {
+        
+        if (this.cache.has(question["id"])) {
+            const answer = this.getAnswerFromRespose(this.cache.get(question["id"]), question);
+            return answer
+        }
 
         const messages = this.getMessages(question);
         const functions = this.getFunctions(question);
-
-        console.log('messages, functions', messages, functions);
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -24,8 +36,7 @@ export class Assistent {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                'model': 'gpt-3.5-turbo-0613',
-                // 'model': 'gpt-4-0613',
+                'model': this.model || models[0],
                 'temperature': 0.2,
                 'function_call': functions[0],
                 messages,
@@ -34,10 +45,10 @@ export class Assistent {
         })
 
         const data = await response.json();
+        const answer = this.getAnswerFromRespose(data, question);
 
-        await callback(this.getAnswerFromRespose(data, question));
-        
-        return true
+        this.cache.set(question["id"], data);
+        return answer
     }
 
     getMessages(question: Object) {
@@ -92,11 +103,11 @@ export class Assistent {
             const function_args = JSON.parse(response_message["function_call"]["arguments"])
 
             if (function_args.answer && function_name == "choose_answer") {
-                const answer = question["items"].find(a => a["text"] === function_args.answer)
+                const answer: Object|null = question["items"].find((a: Object) => a["text"] === function_args.answer)
                 return {
-                    // questionId: question["id"],
+                    ...(answer ? answer : {}),
                     answer: function_args.answer,
-                    option: answer,
+                    AIChecked: true,
                 }
             }
         }

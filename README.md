@@ -1,33 +1,43 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# Google Form GPT Assistant
 
-## Getting Started
+## Description
 
-First, run the development server:
+This is a Chrome extension that assists with Google Forms by using OpenAI's GPT-3 or GPT-4 model to determine the correct answers to questions. The extension is built using the Plasmo framework.
 
-```bash
-pnpm dev
-# or
-npm run dev
-```
+## Installation
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
+To install the extension, you need to have Node.js and npm installed on your system. If you do not have these, you can download and install them from [the official Node.js website](https://nodejs.org).
 
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
+Once you have Node.js and npm installed, you can install the extension by cloning the repository and running `npm install`:
 
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
+    git clone https://github.com/your-repo/gform-gpt-assistant.git
+    cd gform-gpt-assistant
+    npm install
 
-## Making production build
+## Development
 
-Run the following:
+To start the development server, run:
 
-```bash
-pnpm build
-# or
-npm run build
-```
+    npm run dev
 
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
+## Building
 
-## Submit to the webstores
+To build the extension for production, run:
 
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+    npm run build
+
+or
+
+    npm run build -- --zip
+
+This will create a `dist` directory with the built extension.
+
+## Usage
+
+Once the extension is installed, you can configure it by clicking on the extension icon and selecting "Options". Here, you can enter your OpenAI API key and select the GPT model to use.
+
+When viewing a Google Form, you can click on a question to have the extension predict the correct answer. The extension will choose the correct answer.
+
+## License
+
+This extension is licensed under the MIT license. See the `LICENSE` file for more information.
