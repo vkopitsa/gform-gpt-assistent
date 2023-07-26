@@ -12,22 +12,24 @@ export class GFQuestion {
         this.el = el;
         this.options = options;
 
-        const that = this;
+        $("div[role='heading']", this.el).on("click", this.onClickToQuestion.bind(this));
+    };
 
-        $("div[role='heading']", this.el).on("click", function(){ 
-            chrome.runtime.sendMessage(chrome.runtime.id, that.json(), res => {
-                const correctOption = options.find(o => {
-                    return o.id === res['option']['id'];
-                });
+    onClickToQuestion (): void {
+        chrome.runtime.sendMessage(chrome.runtime.id, this.toJson(), this.checkOption.bind(this));
+    };
 
-                if (correctOption) {
-                    $(correctOption.el).css('background-color', 'red');
-                }
-            }); 
-        });
-    }
+    checkOption (res: Object): void {
+        const correctOption = this.options.find(o => o.id === res['option']?.['id']);
+        if (correctOption) {
+            const el = $(correctOption.el);
+            // TODO: debug
+            // el.css('background-color', 'red');
+            el.trigger("click");
+        }
+    };
 
-    json(): string {
+    toJson(): string {
         return JSON.stringify({
             'id': this.id,
             'text': $("div[role='heading']", this.el).text(),
@@ -38,5 +40,5 @@ export class GFQuestion {
                 }
             })
         });
-    }
+    };
 }
