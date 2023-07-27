@@ -1,4 +1,6 @@
-export class Assistent {
+import { models } from "options";
+
+export class OpenAI {
     apiKey: string
     model: string
 
@@ -15,7 +17,7 @@ export class Assistent {
         this.model = model;
     }
 
-    async getAnswer(msg: string, callback) {
+    async getAnswer(msg: string, callback): Promise<Object|null> {
         const question = JSON.parse(msg);
         const messages = this.getMessages(question);
         const functions = this.getFunctions(question);
@@ -27,7 +29,7 @@ export class Assistent {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                'model': this.model,
+                'model': this.model || models[0],
                 'temperature': 0.2,
                 'function_call': functions[0],
                 messages,
@@ -36,7 +38,10 @@ export class Assistent {
         })
 
         const data = await response.json();
-        await callback(this.getAnswerFromRespose(data, question));        
+        const answer = this.getAnswerFromRespose(data, question);
+        await callback(answer);
+
+        return answer
     }
 
     getMessages(question: Object) {
@@ -91,7 +96,7 @@ export class Assistent {
             const function_args = JSON.parse(response_message["function_call"]["arguments"])
 
             if (function_args.answer && function_name == "choose_answer") {
-                const answer = question["items"].find(a => a["text"] === function_args.answer)
+                const answer = question["items"].find((a: Object) => a["text"] === function_args.answer)
                 return {
                     answer: function_args.answer,
                     option: answer,

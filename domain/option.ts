@@ -1,11 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'domain/uuid';
 
 export class GFOption {
     id: string;
     el: HTMLElement;
 
     constructor(el: HTMLElement) {
-        this.id = uuidv4();
+        this.id = nanoid();
         this.el = el;
     }
 }

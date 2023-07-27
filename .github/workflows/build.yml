@@ -1,0 +1,36 @@
+name: "Build extension"
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules/
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-
+      
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3.4.1
+        with:
+          node-version: 16.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the extension
+        run: npm run build -- --zip
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Extension
+          path: build/chrome-mv3-prod.zip
