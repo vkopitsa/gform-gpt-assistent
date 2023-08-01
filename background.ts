@@ -24,8 +24,12 @@ const main = async () => {
     chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         tg.setTabId(sender.tab.id);
 
-        const answer = await ai.getAnswer(message, sendResponse);
-        await tg.sendQuestion(message, answer);
+        const question = JSON.parse(message);
+
+        const answer = await ai.getAnswer(question, sendResponse);
+        await tg.sendQuestion(question, answer);
+
+        return true;
     });
 
     // long polling updates

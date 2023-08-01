@@ -17,8 +17,8 @@ export class OpenAI {
         this.model = model;
     }
 
-    async getAnswer(msg: string, callback): Promise<Object|null> {
-        const question = JSON.parse(msg);
+    async getAnswer(question: Object, callback): Promise<Object|null> {
+        // const question = JSON.parse(msg);
         const messages = this.getMessages(question);
         const functions = this.getFunctions(question);
 
@@ -96,10 +96,11 @@ export class OpenAI {
             const function_args = JSON.parse(response_message["function_call"]["arguments"])
 
             if (function_args.answer && function_name == "choose_answer") {
-                const answer = question["items"].find((a: Object) => a["text"] === function_args.answer)
+                const answer: Object|null = question["items"].find((a: Object) => a["text"] === function_args.answer)
                 return {
+                    ...(answer ? answer : {}),
                     answer: function_args.answer,
-                    option: answer,
+                    AIChecked: true,
                 }
             }
         }

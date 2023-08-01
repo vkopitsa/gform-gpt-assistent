@@ -32,12 +32,38 @@ export class GFQuestion {
 
     onClickToQuestion (): void {
         chrome.runtime.sendMessage(chrome.runtime.id, this.toJson(), this.checkOption.bind(this));
+
+        const that = this;
+        this.options.forEach((o) => {
+            const cb = () => setTimeout(() => { that.onClickToOption.bind(this)(o) }, 50);
+            $(o.el).off("click").on("click", cb); // fix 2 times
+        });
     };
 
-    checkOption (res: Object): void {
-        const correctOption = this.options.find(o => o.id === res['option']?.['id']);
+    onClickToOption (option: GFOption, type: string = "checked"): void {
+        // chrome.runtime.sendMessage(chrome.runtime.id, this.toJson(), this.checkOption.bind(this));
+
+        const checked = $("div[role='radio'], div[role='checkbox']", option.el).attr('aria-checked');
+        const role = $("div[role='radio'], div[role='checkbox']", option.el).attr('role');
+        
+        if (role === "radio") {
+            this.options.forEach((o) => o[type] = false);
+        }
+        option[type] = checked === 'true';
+
+        // console.log(this.options, type);
+
+        // this.onClickToQuestion();
+
+        chrome.runtime.sendMessage(chrome.runtime.id, this.toJson(), ()=>{});
+    };
+
+    checkOption (res: Object|undefined): void {
+        const correctOption = this.options.find(o => o.id === res?.['id']);
         if (correctOption) {
             const el = $(correctOption.el);
+
+            this.onClickToOption(correctOption, res['AIChecked'] ? "AIChecked" : "checked")            
 
             switch (this.event) {
                 case CHOOSE_EVENT:
@@ -71,6 +97,8 @@ export class GFQuestion {
             'items': this.options.map((o) => {
                 return {
                     'id': o.id,
+                    'AIChecked': o.AIChecked,
+                    'checked': o.checked,
                     'text': $("span", o.el).text(),
                 }
             })

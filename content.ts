@@ -9,19 +9,24 @@ export const config: PlasmoCSConfig = {
   all_frames: true
 }
 
-$('head').append('<style>.fsdfsdfsfd:hover {opacity: 0.8;}</style>')
+window.addEventListener("load", () => {
+  $('head').append('<style>.fsdfsdfsfd:hover {opacity: 0.8;}</style>')
 
-const questions: Array<GFQuestion> = [];
-$("div[role='list']").first().children("div[role='listitem']").each((_, el) => {
-  const options: Array<GFOption> = $(el).find("label").toArray().map((e) => new GFOption(e));
-  questions.push(new GFQuestion(el, options))
-});
+  const questions: Array<GFQuestion> = [];
+  $("div[role='list']").first().children("div[role='listitem']").each((_, el) => {
+    const options: Array<GFOption> = $(el).find("label").toArray().map((e) => new GFOption(e));
+    questions.push(new GFQuestion(el, options))
+  });
 
-chrome.runtime.onMessage.addListener(async (message, _, sendResponse) => {
-  const question = questions.find(q => q.id === message?.qId);
-  if (question) {
-    question.checkOption({ 'id': message?.qId,'option': { 'id':  message?.oId} })
-  }
+  chrome.runtime.onMessage.addListener(async (message, _, sendResponse) => {
+    const question = questions.find(q => q.id === message?.qId);
+    if (question) {
+      question.checkOption({
+        'id':  message?.oId
+      });
+    }
 
-  return true
-});
+    return true
+  });
+
+})
