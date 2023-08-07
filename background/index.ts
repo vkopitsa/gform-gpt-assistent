@@ -34,11 +34,20 @@ export class BackgroundWorker {
         await this.tg.pollUpdates();
     }
 
-    async onMessage (message: any, port: chrome.runtime.Port): Promise<void> {        
-        const answer = await this.ai.getAnswer(message);
-        port.postMessage(answer);
+    async onMessage (message: any, port: chrome.runtime.Port): Promise<void> {
+        const question = message.data;
+        const change = message.change;
+        const answer = await this.ai.getAnswer(question);
 
-        await this.tg.sendQuestion(message, answer);
+        if (!change) {
+            // send to content
+            port.postMessage({ check: true, data: {
+                'qId': question['id'],
+                'oId': answer['id'],
+            } });
+        }
+
+        await this.tg.sendQuestion(question, answer);
     }
 
     async clear (): Promise<void> {

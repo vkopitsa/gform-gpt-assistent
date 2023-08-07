@@ -1,4 +1,4 @@
-import { nanoid } from 'tools';
+import { nanoid } from '~tools';
 
 
 export class GFOption {

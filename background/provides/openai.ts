@@ -1,4 +1,5 @@
-import { models } from "options";
+import { models } from "configs";
+
 
 export class OpenAI {
     apiKey: string;
@@ -22,8 +23,6 @@ export class OpenAI {
         
         if (this.cache.has(question["id"])) {
             const answer = this.getAnswerFromRespose(this.cache.get(question["id"]), question);
-            // await callback(answer);
-
             return answer
         }
 
@@ -47,7 +46,6 @@ export class OpenAI {
 
         const data = await response.json();
         const answer = this.getAnswerFromRespose(data, question);
-        // await callback(answer);
 
         this.cache.set(question["id"], data);
         return answer

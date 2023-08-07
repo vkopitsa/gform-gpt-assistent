@@ -2,6 +2,7 @@ import type { PlasmoCSConfig } from "plasmo";
 import $ from "jquery";
 import { GFOption } from "~contents/domain/option";
 import { GFQuestion } from "~contents/domain/question";
+import { timeout } from '~tools';
 
 
 export const config: PlasmoCSConfig = {
@@ -21,10 +22,11 @@ window.addEventListener("load", () => {
   });
 
   port.onMessage.addListener(async (message) => {
-    const question = questions.find(q => q.id === message?.qId);
+    const data = message.data;
+    const question = questions.find(q => q.id === data?.qId);
     if (question) {
       question.checkOption({
-        'id':  message?.oId
+        'id':  data?.oId
       });
     }
 

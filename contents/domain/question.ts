@@ -1,9 +1,8 @@
 import { GFOption } from "~contents/domain/option";
 import $ from "jquery";
 import { Storage } from "@plasmohq/storage";
-import { nanoid } from 'tools';
-import { CHOOSE_EVENT, OPACITY_EVENT, RED_BACKGROUND_EVENT } from 'options';
-import { debounce } from "tools";
+import { nanoid, debounce } from '~tools';
+import { CHOOSE_EVENT, OPACITY_EVENT, RED_BACKGROUND_EVENT } from "configs";
 
 
 const storage = new Storage();
@@ -40,10 +39,16 @@ export class GFQuestion {
             $(o.el).on("click", onClick);
         });
 
-        this.port.postMessage(that.toJson());
+        this.port.postMessage({ data: that.toJson() });
     };
 
     onClickToOption (option: GFOption, type: string = "checked"): void {
+        this.selectedOption(option, type);
+
+        this.port.postMessage({ change: true, data: this.toJson() });
+    };
+
+    selectedOption (option: GFOption, type: string = "checked"): void {
         const checked = $("div[role='radio'], div[role='checkbox']", option.el).attr('aria-checked');
         const role = $("div[role='radio'], div[role='checkbox']", option.el).attr('role');
         
@@ -51,7 +56,6 @@ export class GFQuestion {
             this.options.forEach((o) => o[type] = false);
         }
         option[type] = checked === 'true';
-        this.port.postMessage(this.toJson());
     };
 
     checkOption (res: Object|undefined): void {
@@ -59,7 +63,8 @@ export class GFQuestion {
         if (correctOption) {
             const el = $(correctOption.el);
 
-            this.onClickToOption(correctOption, res['AIChecked'] ? "AIChecked" : "checked")            
+            // this.onClickToOption(correctOption, res['AIChecked'] ? "AIChecked" : "checked");
+            this.selectedOption(correctOption, res['AIChecked'] ? "AIChecked" : "checked");         
 
             switch (this.event) {
                 case CHOOSE_EVENT:

@@ -1,4 +1,4 @@
-import { timeout } from 'tools';
+import { timeout } from '~tools';
 
 
 export class Telegram {
@@ -84,11 +84,12 @@ export class Telegram {
         let inlineKeyboards = [];
 
         for (var i = 0; i < question["items"].length; i++) {
-            let AIChecked = question["items"][i]['AIChecked'];
-            const checked = question["items"][i]['checked'];
+            const option = question["items"][i];
+            const checked = option['checked'];
+            let AIChecked = option['AIChecked'];
 
             if (aiAnswer) {
-                AIChecked = aiAnswer && aiAnswer['id'] ? aiAnswer['id'] === question["items"][i]['id'] : false;
+                AIChecked = aiAnswer && aiAnswer['id'] ? aiAnswer['id'] === option['id'] : false;
             }
 
             let checkEmoji = [];
@@ -101,11 +102,11 @@ export class Telegram {
                 checkEmoji.push("✔️")
             }
 
-            text += `${(i + 1)}. ${question["items"][i]['text']}    ${checkEmoji.join(' ')}\n`;
+            text += `${(i + 1)}. ${option['text']}    ${checkEmoji.join(' ')}\n`;
 
             inlineKeyboards.push({
-                'text': `${(i + 1)}. ${question["items"][i]['text']}`,
-                'callback_data': this.callbackQueryData(question['id'], question["items"][i]['id'])
+                'text': `${(i + 1)}. ${option['text']}`,
+                'callback_data': this.callbackQueryData(question['id'], option['id'])
             });
         }
         text += '\n`\`\`';
@@ -195,10 +196,10 @@ export class Telegram {
         }
 
         // send to content
-        this.port.postMessage({
+        this.port.postMessage({ chack: true, data: {
             'qId': questionId,
             'oId': optionId,
-        });
+        }});
 
         await this.answerCallbackQuery(callbackQuery.id);
     };
