@@ -10,6 +10,7 @@
     "test": "plasmo test"
   },
   "dependencies": {
+    "@lmdb/lmdb-darwin-x64": "^2.8.4",
     "@plasmohq/storage": "^1.7.2",
     "jquery": "^3.7.0",
     "nanoid": "^4.0.2",

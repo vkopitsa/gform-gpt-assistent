@@ -1,7 +1,10 @@
+import { timeout } from 'tools';
+
+
 export class Telegram {
     botToken: string;
     chatId: string;
-    tabId: any;
+    port: chrome.runtime.Port;
 
     messages: Map<string, Object> = new Map<string, Object>();
 
@@ -18,19 +21,8 @@ export class Telegram {
         this.chatId = chatId;
     };
 
-    setTabId(tabId: any) {
-        this.tabId = tabId;
-    };
-
     isEnabled(){
         return this.botToken && this.chatId
-    };
-
-    async getAnswer(msg: string, callback) {
-        const question = JSON.parse(msg);
-
-        // const data = await response.json();
-        // await callback(this.getAnswerFromRespose(data, question)); 
     };
 
     async sendQuestion(question: Object, aiAnswer: Object|null) {
@@ -151,7 +143,7 @@ export class Telegram {
         }
 
         try {
-            const response = await fetch(`https://api.telegram.org/bot${this.botToken}/getUpdates?offset=${(lastUpdateId + 1)}&timeout=60&allowed_updates=["callback_query"]`);
+            const response = await fetch(`https://api.telegram.org/bot${this.botToken}/getUpdates?offset=${(lastUpdateId + 1)}&timeout=15&allowed_updates=["callback_query"]`);
             const data = await response.json();
     
             const updates = data.result;
@@ -160,16 +152,7 @@ export class Telegram {
                 for (let update of updates) {
                     // Here you can handle the update, for example, print the text of a message
                     if (update.callback_query) {
-                        this.processPullUpdate(update.callback_query);
-                        // const params = update.callback_query.data.split(":");
-
-                        // // send to content
-                        // chrome.tabs.sendMessage(this.tabId, {
-                        //     'qId': params[1],
-                        //     'oId': params[2],
-                        // })
-
-                        // this.answerCallbackQuery(update.callback_query.id);
+                        await this.processPullUpdate(update.callback_query);
                     }
                 }
     
@@ -212,15 +195,11 @@ export class Telegram {
         }
 
         // send to content
-        chrome.tabs.sendMessage(this.tabId, {
+        this.port.postMessage({
             'qId': questionId,
             'oId': optionId,
-        })
+        });
 
-        this.answerCallbackQuery(callbackQuery.id);
+        await this.answerCallbackQuery(callbackQuery.id);
     };
-}
-
-function timeout(ms?: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+};

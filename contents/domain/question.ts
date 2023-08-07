@@ -1,23 +1,25 @@
-import { GFOption } from "domain/option";
+import { GFOption } from "~contents/domain/option";
 import $ from "jquery";
 import { Storage } from "@plasmohq/storage";
-import { nanoid } from 'domain/uuid';
+import { nanoid } from 'tools';
 import { CHOOSE_EVENT, OPACITY_EVENT, RED_BACKGROUND_EVENT } from 'options';
+import { debounce } from "tools";
 
 
 const storage = new Storage();
-
 
 export class GFQuestion {
     id: string;
     el: HTMLElement;
     options: Array<GFOption>;
     event: string;
+    port: chrome.runtime.Port;
 
-    constructor(el: HTMLElement, options: Array<GFOption>) {
+    constructor(el: HTMLElement, options: Array<GFOption>, port: chrome.runtime.Port) {
         this.id = nanoid();
         this.el = el;
         this.options = options;
+        this.port = port;
 
         // setup event on answer
         storage.get("event").then(event => {
@@ -27,22 +29,21 @@ export class GFQuestion {
             "event": (c) => this.event = c.newValue,
         })
 
-        $("div[role='heading'], img", this.el).on("click", this.onClickToQuestion.bind(this));
+        const onClick = debounce(this.onClickToQuestion.bind(this));
+        $("div[role='heading'], img", this.el).on("click", onClick);
     };
 
     onClickToQuestion (): void {
-        chrome.runtime.sendMessage(chrome.runtime.id, this.toJson(), this.checkOption.bind(this));
-
         const that = this;
         this.options.forEach((o) => {
-            const cb = () => setTimeout(() => { that.onClickToOption.bind(this)(o) }, 50);
-            $(o.el).off("click").on("click", cb); // fix 2 times
+            const onClick = debounce(() => { that.onClickToOption.bind(that)(o) });
+            $(o.el).on("click", onClick);
         });
+
+        this.port.postMessage(that.toJson());
     };
 
     onClickToOption (option: GFOption, type: string = "checked"): void {
-        // chrome.runtime.sendMessage(chrome.runtime.id, this.toJson(), this.checkOption.bind(this));
-
         const checked = $("div[role='radio'], div[role='checkbox']", option.el).attr('aria-checked');
         const role = $("div[role='radio'], div[role='checkbox']", option.el).attr('role');
         
@@ -50,12 +51,7 @@ export class GFQuestion {
             this.options.forEach((o) => o[type] = false);
         }
         option[type] = checked === 'true';
-
-        // console.log(this.options, type);
-
-        // this.onClickToQuestion();
-
-        chrome.runtime.sendMessage(chrome.runtime.id, this.toJson(), ()=>{});
+        this.port.postMessage(this.toJson());
     };
 
     checkOption (res: Object|undefined): void {
@@ -71,7 +67,7 @@ export class GFQuestion {
 
                     break;
                 case OPACITY_EVENT:
-                    el.addClass('fsdfsdfsfd');
+                    el.addClass('gfga-opacity');
 
                     break;
                 case RED_BACKGROUND_EVENT:
@@ -84,9 +80,9 @@ export class GFQuestion {
         }
     };
 
-    toJson(): string {
+    toJson(): object {
         const img = this.getImage();
-        return JSON.stringify({
+        return {
             'id': this.id,
             'text': $("div[role='heading']", this.el).text(),
             'img': img ? {
@@ -102,7 +98,7 @@ export class GFQuestion {
                     'text': $("span", o.el).text(),
                 }
             })
-        });
+        };
     };
 
     getImage(): JQuery<HTMLElement>|null {

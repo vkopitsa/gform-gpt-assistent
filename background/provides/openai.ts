@@ -1,8 +1,9 @@
 import { models } from "options";
 
 export class OpenAI {
-    apiKey: string
-    model: string
+    apiKey: string;
+    model: string;
+    cache: Map<string, any> = new Map<string, any>();
 
     constructor(apiKey: string, model: string) {
         this.apiKey = apiKey;
@@ -17,8 +18,15 @@ export class OpenAI {
         this.model = model;
     }
 
-    async getAnswer(question: Object, callback): Promise<Object|null> {
-        // const question = JSON.parse(msg);
+    async getAnswer(question: Object): Promise<Object|null> {
+        
+        if (this.cache.has(question["id"])) {
+            const answer = this.getAnswerFromRespose(this.cache.get(question["id"]), question);
+            // await callback(answer);
+
+            return answer
+        }
+
         const messages = this.getMessages(question);
         const functions = this.getFunctions(question);
 
@@ -39,8 +47,9 @@ export class OpenAI {
 
         const data = await response.json();
         const answer = this.getAnswerFromRespose(data, question);
-        await callback(answer);
+        // await callback(answer);
 
+        this.cache.set(question["id"], data);
         return answer
     }
 

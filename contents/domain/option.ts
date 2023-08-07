@@ -1,5 +1,5 @@
-import { nanoid } from 'domain/uuid';
-import $ from "jquery";
+import { nanoid } from 'tools';
+
 
 export class GFOption {
     id: string;
